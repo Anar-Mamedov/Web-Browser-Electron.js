@@ -1,0 +1,34 @@
+my-electron-app/
+├── node_modules/
+├── public/
+│   ├── index.html
+│   └── assets/
+│       ├── images/
+│       │   └── logo.png
+│       └── styles/
+│           └── global.css
+├── src/
+│   ├── main/
+│   │   ├── main.js
+│   │   ├── preload.js
+│   │   └── utils/
+│   │       └── fileHandler.js
+│   ├── renderer/
+│   │   ├── components/
+│   │   │   └── Header.jsx
+│   │   ├── pages/
+│   │   │   └── Home.jsx
+│   │   ├── styles/
+│   │   │   └── Home.css
+│   │   ├── renderer.js
+│   │   └── index.html
+│   └── shared/
+│       └── constants.js
+├── build/
+├── tests/
+│   └── main.test.js
+├── .gitignore
+├── package.json
+├── package-lock.json
+├── webpack.config.js
+└── README.md

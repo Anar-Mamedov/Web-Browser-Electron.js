@@ -1,0 +1,203 @@
+<!-- index.html -->
+
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>PBTPro Uygulaması</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: sans-serif;
+      overflow: hidden;
+    }
+    #tab-bar {
+      display: flex;
+      align-items: center;
+      height: 30px; /* Tab bar yüksekliği */
+      background: #222;
+      padding: 0 10px;
+      transition: all 0.3s ease;
+    }
+    #tab-bar.hidden {
+      height: 0;
+      padding: 0 10px;
+      opacity: 0;
+      pointer-events: none;
+    }
+    #tab-bar .tab {
+      position: relative;
+      margin-right: 5px;
+      padding: 2px 10px;
+      color: #fff;
+      background: #444;
+      border: 1px solid #333;
+      cursor: pointer;
+      font-size: 12px;
+      display: inline-flex;
+      align-items: center;
+    }
+    #tab-bar .tab.active {
+      background: #666;
+    }
+    #tab-bar .tab-title {
+      margin-right: 10px;
+    }
+    #tab-bar .close-btn {
+      color: #ccc;
+      font-size: 12px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    #tab-bar .close-btn:hover {
+      color: #fff;
+    }
+    #tab-bar button#new-tab-btn {
+      margin-left: auto;
+      padding: 2px 8px;
+      color: #fff;
+      background: #555;
+      border: none;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    #tab-bar button#new-tab-btn:hover {
+      background: #666;
+    }
+    #top-bar {
+      display: flex;
+      align-items: center;
+      height: 30px; /* Navigation bar yüksekliği */
+      background: #333;
+      padding: 0 10px;
+      transition: all 0.3s ease;
+    }
+    #top-bar.hidden {
+      height: 0;
+      padding: 0 10px;
+      opacity: 0;
+      pointer-events: none;
+    }
+    #top-bar button {
+      margin-right: 10px;
+      padding: 2px 5px;
+      color: #fff;
+      background: #444;
+      border: none;
+      cursor: pointer;
+      font-size: 12px;
+    }
+    #top-bar button:hover {
+      background: #555;
+    }
+    #url-input {
+      flex: 1;
+      margin-left: 10px;
+      padding: 2px 5px;
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+  <div id="tab-bar">
+    <button id="new-tab-btn">+</button>
+  </div>
+
+  <div id="top-bar">
+    <button id="back-btn">Geri</button>
+    <button id="forward-btn">İleri</button>
+    <button id="reload-btn">Yenile</button>
+    <input type="text" id="url-input"/>
+  </div>
+
+  <script>
+    const backBtn = document.getElementById("back-btn");
+    const forwardBtn = document.getElementById("forward-btn");
+    const reloadBtn = document.getElementById("reload-btn");
+    const urlInput = document.getElementById("url-input");
+    const tabBar = document.getElementById("tab-bar");
+    const newTabBtn = document.getElementById("new-tab-btn");
+    const topBar = document.getElementById("top-bar");
+
+    backBtn.addEventListener("click", () => {
+      window.electronAPI.navigateBack();
+    });
+
+    forwardBtn.addEventListener("click", () => {
+      window.electronAPI.navigateForward();
+    });
+
+    reloadBtn.addEventListener("click", () => {
+      window.electronAPI.reloadPage();
+    });
+
+    urlInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        const newURL = urlInput.value.trim();
+        if (newURL) {
+          window.electronAPI.navigateToURL(newURL);
+        }
+      }
+    });
+
+    newTabBtn.addEventListener("click", () => {
+      window.electronAPI.createTab();
+    });
+
+    window.electronAPI.onUpdateURL((newURL) => {
+      urlInput.value = newURL;
+    });
+
+    window.electronAPI.onUpdateTabs((data) => {
+      // data: { tabs: [{title, index}], selectedIndex }
+      const { tabs, selectedIndex } = data;
+
+      // + düğmesi hariç her şeyi temizle
+      [...tabBar.querySelectorAll('.tab')].forEach(t => t.remove());
+
+      tabs.forEach(tabInfo => {
+        const tabEl = document.createElement('div');
+        tabEl.classList.add('tab');
+        const titleEl = document.createElement('div');
+        titleEl.classList.add('tab-title');
+        titleEl.textContent = tabInfo.title;
+
+        const closeBtn = document.createElement('div');
+        closeBtn.classList.add('close-btn');
+        closeBtn.textContent = '×';
+        closeBtn.addEventListener('click', (e) => {
+          e.stopPropagation(); // Sekmeyi seçme eventını durdur
+          window.electronAPI.closeTab(tabInfo.index);
+        });
+
+        tabEl.appendChild(titleEl);
+        tabEl.appendChild(closeBtn);
+
+        if (tabInfo.index === selectedIndex) {
+          tabEl.classList.add('active');
+        }
+
+        tabEl.addEventListener('click', () => {
+          window.electronAPI.switchTab(tabInfo.index);
+        });
+
+        tabBar.insertBefore(tabEl, newTabBtn);
+      });
+    });
+
+    // Handle hide-bars and show-bars messages
+    window.electronAPI.onHideBars(() => {
+      tabBar.classList.add('hidden');
+      topBar.classList.add('hidden');
+      console.log("Bars hidden.");
+    });
+
+    window.electronAPI.onShowBars(() => {
+      tabBar.classList.remove('hidden');
+      topBar.classList.remove('hidden');
+      console.log("Bars shown.");
+    });
+  </script>
+</body>
+</html>
